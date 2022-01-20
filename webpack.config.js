@@ -1,45 +1,65 @@
-const webpack = require('webpack');
 const path = require('path');
-const SRC_DIR = path.resolve(__dirname, 'client');
-const DIST_DIR = path.resolve(__dirname, 'public');
-
-const config = {
-  entry: ['babel-polyfill', SRC_DIR + '/index.js'],
-  output: {
-    path: DIST_DIR,
-    filename: 'bundle.js'
-  },
-  devServer: {
-    contentBase: './public',
-    proxy: {
-      '/api': {
-        target: 'http://localhost:3000/',
-        secure: false
-      }
-    }
-  },
+const webpack = require('webpack');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
+const HTML_PATH = './client/index.html';
+const REACT_ENTRY = '/client/index.js';
+module.exports = {
+  entry: path.resolve(__dirname, REACT_ENTRY),
   mode: 'development',
+  plugins: [
+    new webpack.ProgressPlugin(),
+    new HtmlWebpackPlugin({ template: path.resolve(HTML_PATH) }),
+  ],
+  devServer: {
+    compress: true,
+    port: 9000,
+  },
+  output: {
+    path: path.resolve(__dirname, 'root'),
+    filename: 'bundle.js',
+    scriptType: 'text/javascript',
+  },
   module: {
     rules: [
       {
-        test: /js?$/,
-        include: path.resolve(__dirname, './client'),
+        test: /\.(js|jsx)$/,
+        include: [path.resolve(__dirname, 'client')],
         loader: 'babel-loader',
-        query: {
-          presets: ['env', 'stage-2', 'react']
-        }
-      },
-      // use the style-loader/css-loader combos for anything matching the .css extension
-      {
-        test: /\.css$/,
-        use: ['style-loader', 'css-loader']
+        options: { presets: ['@babel/env', '@babel/preset-react'] },
       },
       {
-        test: /\.scss$/,
-        use: ['style-loader', 'css-loader', 'sass-loader']
-      }
-    ]
-  }
+        test: /.(scss|css)$/,
+        use: [
+          // Creates `style` nodes from JS strings
+          'style-loader',
+          // Translates CSS into CommonJS
+          'css-loader',
+          // Compiles Sass to CSS
+          'sass-loader',
+        ],
+      },
+      {
+        test: /\.(otf)$/,
+        use: [
+          {
+            loader: 'file-loader',
+            options: {
+              name: '[name].[ext]',
+              outputPath: './fonts/',
+            },
+          },
+        ],
+      },
+      {
+        test: /\.(jpe?g|gif|png|svg)$/i,
+        use: [
+          {
+            loader: 'url-loader',
+            options: {},
+          },
+        ],
+      },
+    ],
+  },
 };
-
-module.exports = config;

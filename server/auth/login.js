@@ -2,14 +2,14 @@ const router = require('express').Router();
 const { User } = require('../db/models/index');
 
 router.post('/', (req, res, next) => {
-  let { email, password } = req.body;
+  const { email, password } = req.body;
   User.findOne({
     where: {
       email,
-      password
-    }
+      password,
+    },
   })
-    .then(function(user) {
+    .then(function (user) {
       if (!user) {
         res.sendStatus(401);
       } else {
